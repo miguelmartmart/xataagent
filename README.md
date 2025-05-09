@@ -1,3 +1,5 @@
+<<<<<<< HEAD
+
 <div align="center">
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="brand-kit/banner/xata-agent-banner-github-dark-mode@2x.png">
@@ -117,4 +119,8 @@ While it's still early days, we are using the agent ourself in our day-to-day op
   - [ ] Add an approval workflow for the agent to run potentially dangerous statements
   - [ ] Allow configuration of the tools that can be defined per monitoring schedule
 
-While the Agent is by its nature primarily an open-source project that you self-host, we are also working on a cloud version. The advantage of the cloud version is that some integrations are easier to install. If you are interested in the cloud version, please [sign up on the waitlist here](https://tally.so/r/wgvkgM).
+# While the Agent is by its nature primarily an open-source project that you self-host, we are also working on a cloud version. The advantage of the cloud version is that some integrations are easier to install. If you are interested in the cloud version, please [sign up on the waitlist here](https://tally.so/r/wgvkgM).
+
+# xataagent
+
+> > > > > > > cfb7adafbb6b1459cbea6ab1c56d5684241e3167
