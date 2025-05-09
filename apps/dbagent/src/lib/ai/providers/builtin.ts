@@ -13,6 +13,7 @@ type BuiltinProvider = Provider & {
 
 type BuiltinProviderModel = ProviderModel & {
   providerId: string;
+  modelId?: string; // Añadir esto si no existe
 };
 
 const builtinOpenAIModels: BuiltinProvider = {
@@ -99,14 +100,20 @@ const builtinGoogleModels: BuiltinProvider = {
   },
   models: [
     {
-      id: 'google:gemini-2.5-pro',
-      providerId: 'gemini-2.5-pro-preview-03-25',
-      name: 'Gemini 2.5 Pro'
-    },
-    {
       id: 'google:gemini-2.0-flash',
       providerId: 'gemini-2.0-flash',
       name: 'Gemini 2.0 Flash'
+    },
+    {
+      id: 'google:gemini-2.5-pro-exp',
+      providerId: 'gemini-2.5-pro-exp-03-25',
+      name: 'Gemini 2.5 Pro Experimental',
+      modelId: 'google:gemini-2.5-pro-exp-03-25' // <- Este campo debe estar presente si `modelId` es parte de `BuiltinProviderModel`
+    },
+    {
+      id: 'google:gemini-2.5-pro',
+      providerId: 'gemini-2.5-pro-exp-03-25', // Cambiado a modelo experimental con cuota gratuita
+      name: 'Gemini 2.5 Pro'
     },
     {
       id: 'google:gemini-2.0-flash-lite',
@@ -127,6 +134,7 @@ const builtinProviderModels: Record<string, Model> = (function () {
   if (env.ANTHROPIC_API_KEY) {
     activeList.push(builtinAnthropicModels);
   }
+  console.log('GOOGLE_GENERATIVE_AI_API_KEY:', env.GOOGLE_GENERATIVE_AI_API_KEY);
   if (env.GOOGLE_GENERATIVE_AI_API_KEY) {
     activeList.push(builtinGoogleModels);
   }
@@ -150,7 +158,7 @@ const defaultTitleModel = builtinProviderModels['openai:gpt-4.1-mini'] ?? Object
 const defaultSummaryModel = builtinProviderModels['openai:gpt-4.1-mini'] ?? Object.values(builtinProviderModels)[0]!;
 
 const builtinModelAliases: Record<string, string> = {
-  chat: defaultLanguageModel.info().id,
+  chat: 'openai:gpt-4o', // Cambiado para probar con OpenAI
   title: defaultTitleModel.info().id,
   summary: defaultSummaryModel.info().id
 };

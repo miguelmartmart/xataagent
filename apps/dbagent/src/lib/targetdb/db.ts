@@ -1,28 +1,26 @@
-import pg from 'pg';
+import type { ClientConfig, PoolConfig } from 'pg';
+import { Client, ClientBase, Pool } from 'pg';
 
-export type PoolConfig = pg.PoolConfig;
-export type Pool = pg.Pool;
-export type Client = pg.Client;
-export type ClientBase = pg.ClientBase;
+export { Client, ClientBase, Pool };
 
 export function getTargetDbPool(connectionString: string, poolConfig: Omit<PoolConfig, 'connectionString'> = {}): Pool {
   const parsed = parseConnectionString(connectionString);
   const config = { ...poolConfig, ...parsed };
   if (!config.max) config.max = 1;
 
-  return new pg.Pool(config);
+  return new Pool(config);
 }
 
 export async function getTargetDbConnection(connectionString: string): Promise<Client> {
   const parsed = parseConnectionString(connectionString);
-  const client = new pg.Client({ ...parsed });
+  const client = new Client({ ...parsed });
   await client.connect();
   return client;
 }
 
-function parseConnectionString(connectionString: string): { connectionString: string; ssl?: pg.ClientConfig['ssl'] } {
+function parseConnectionString(connectionString: string): { connectionString: string; ssl?: ClientConfig['ssl'] } {
   let modifiedConnectionString = connectionString;
-  let sslConfig: pg.ClientConfig['ssl'] | undefined = undefined;
+  let sslConfig: ClientConfig['ssl'] | undefined = undefined;
   if (connectionString.includes('sslmode=require')) {
     // Remove sslmode=require from connection string to avoid duplicate SSL config
     modifiedConnectionString = connectionString.replace(/[\s;]?sslmode=require/g, '');

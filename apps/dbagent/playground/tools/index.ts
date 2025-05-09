@@ -8,11 +8,12 @@ import {
   playbookTools,
   Toolset
 } from '~/lib/ai/tools';
+
 import { getConnectionByName, getDefaultConnection } from '~/lib/db/connections';
 import { DBUserAccess } from '~/lib/db/db';
 import { getProjectByName } from '~/lib/db/projects';
 import { CloudProvider, Connection } from '~/lib/db/schema';
-import { getTargetDbPool, Pool } from '~/lib/targetdb/db';
+import { getTargetDbPool } from '~/lib/targetdb/db';
 
 type PlaygroundToolsConfig = {
   projectConnection?: string;
@@ -103,7 +104,8 @@ function createConnectionGetter(
 }
 
 function createTargetDBPoolGetter(connGetter: () => Promise<Connection>) {
-  let cachedPool: Pool | null = null;
+  let cachedPool: ReturnType<typeof getTargetDbPool> | null = null;
+
   return async () => {
     if (cachedPool) {
       return cachedPool;

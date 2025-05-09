@@ -11,18 +11,21 @@ import {
 } from '~/lib/tools/stats';
 import { ToolsetGroup } from './types';
 
-import { Pool, withPoolConnection } from '~/lib/targetdb/db';
+import { withPoolConnection } from '~/lib/targetdb/db';
 
-export function getDBSQLTools(targetDb: Pool): DBSQLTools {
+import * as pg from 'pg'; // Importar todo el módulo
+const pool: pg.Pool = new pg.Pool();
+console.log(pool);
+export function getDBSQLTools(targetDb: pg.Pool): DBSQLTools {
   return new DBSQLTools(targetDb);
 }
 
 // The DBSQLTools toolset provides tools for querying the postgres database
 // directly via SQL to collect system performance information.
 export class DBSQLTools implements ToolsetGroup {
-  #pool: Pool | (() => Promise<Pool>);
+  #pool: pg.Pool | (() => Promise<pg.Pool>);
 
-  constructor(pool: Pool | (() => Promise<Pool>)) {
+  constructor(pool: pg.Pool | (() => Promise<pg.Pool>)) {
     this.#pool = pool;
   }
 

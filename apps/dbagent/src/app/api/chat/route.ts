@@ -34,11 +34,15 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: Request) {
+  console.log('POST function started'); // Temporary log
   try {
     const { id, messages, connectionId, model: modelId, useArtifacts } = await request.json();
+    console.log('Original messages:', messages); // Temporary log
 
     const userId = await requireUserSession();
+    console.log('User session required'); // Temporary log
     const dbAccess = await getUserSessionDBAccess();
+    console.log('DB access obtained'); // Temporary log
     const connection = await getConnection(dbAccess, connectionId);
     if (!connection) {
       console.error('Connection not found', connectionId);
@@ -62,6 +66,11 @@ export async function POST(request: Request) {
     const context = getChatSystemPrompt({ cloudProvider: project.cloudProvider, useArtifacts });
     const model = await getLanguageModel(modelId);
 
+    // Filtrar mensajes con partes vacías para evitar el error de la API de Gemini
+    // Filtrar mensajes con partes vacías para evitar el error de la API de Gemini
+    const filteredMessages = messages.filter((message: UIMessage) => message.parts && message.parts.length > 0);
+    console.log('Filtered messages:', filteredMessages); // Temporary log
+
     return createDataStreamResponse({
       execute: async (dataStream) => {
         const tools = await getTools({ project, connection, targetDb, useArtifacts, userId, dataStream });
@@ -69,13 +78,14 @@ export async function POST(request: Request) {
         const result = streamText({
           model: model.instance(),
           system: context,
-          messages,
+          messages: filteredMessages, // Usar los mensajes filtrados
           maxSteps: 20,
           toolCallStreaming: true,
           experimental_transform: smoothStream({ chunking: 'word' }),
           experimental_generateMessageId: generateUUID,
           tools,
           onFinish: async ({ response }) => {
+            console.log('Response messages:', response.messages); // Temporary log
             try {
               const assistantId = getTrailingMessageId({
                 messages: response.messages.filter((message) => message.role === 'assistant')

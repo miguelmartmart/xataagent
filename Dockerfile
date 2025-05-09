@@ -28,8 +28,14 @@ COPY packages/ ./packages/
 COPY configs/ ./configs/
 COPY apps/dbagent/ ./apps/dbagent/
 
+RUN cat apps/dbagent/src/lib/ai/providers/builtin.ts # Temporary log
+
 # Install dependencies
 RUN pnpm install
+
+RUN node -v # Imprimir versión de Node.js
+RUN pnpm exec tsc -v # Imprimir versión de TypeScript
+RUN pnpm list pg # Imprimir versión de pg instalada por pnpm
 
 # Rebuild the source code only when needed
 FROM base AS builder
@@ -43,6 +49,8 @@ RUN mkdir -p /app/apps/dbagent/public
 
 # Build the Next.js application
 WORKDIR /app/apps/dbagent
+COPY .env.production ./ 
+RUN export $(grep -v '^#' .env.production | xargs) # Export variables from .env.production, ignoring comments
 RUN pnpm build
 
 # Production image, copy all the files and run next
@@ -58,9 +66,6 @@ RUN addgroup --system --gid 1001 nodejs && \
     adduser --system --uid 1001 nextjs
 
 # Copy the entire project structure to preserve module resolution
-COPY --from=builder /app ./
-
-# Set correct permissions
 RUN chown -R nextjs:nodejs /app
 
 # Switch to non-root user
@@ -76,4 +81,4 @@ WORKDIR /app/apps/dbagent
 ENV NODE_PATH=/app/node_modules
 
 # Start both the scheduler and the Next.js application
-CMD ["sh", "-c", "pnpm drizzle-kit migrate && (pnpm tsx scripts/scheduler.ts & pnpm next start --port $PORT)"] 
+CMD ["sh", " -c", "sleep 10 && pnpm drizzle-kit migrate && (pnpm tsx scripts/scheduler.ts & pnpm next start --port $PORT)"] # Add a delay

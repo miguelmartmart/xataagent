@@ -1,5 +1,7 @@
 import { DataStreamWriter, Tool } from 'ai';
+
 import { Pool } from 'pg';
+
 import { getUserSessionDBAccess } from '~/lib/db/db';
 import { Connection, Project } from '~/lib/db/schema';
 import { getArtifactTools } from './artifacts';
@@ -26,7 +28,7 @@ export async function getTools({
 }: {
   project: Project;
   connection: Connection;
-  targetDb: Pool;
+  targetDb: InstanceType<typeof Pool>;
   userId: string;
   useArtifacts?: boolean;
   dataStream?: DataStreamWriter;

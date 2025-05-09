@@ -68,6 +68,14 @@ model_list:
       xata_agent:
         model_id: google:gemini-2.5-pro
         group_fallback: google
+  - model_name: Gemini 2.5 Pro Experimental
+    litellm_params:
+      model: gemini/gemini-2.5-pro-exp-03-25
+      api_key: os.environ/GOOGLE_GENERATIVE_AI_API_KEY
+    model_info:
+      xata_agent:
+        model_id: google:gemini-2.5-pro-exp-03-25
+        group_fallback: google
 
 general_settings:
   master_key: os.environ/LITELLM_MASTER_KEY

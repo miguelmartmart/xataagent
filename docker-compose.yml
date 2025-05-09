@@ -1,33 +1,81 @@
 services:
-  postgres:
-    image: postgres:17
+  # Servicio de base de datos PostgreSQL para Odoo
+  db:
+    image: postgres:16
     environment:
-      POSTGRES_USER: ${POSTGRES_USER:-dbagent}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-changeme}
-      POSTGRES_DB: ${POSTGRES_DB:-dbagent}
+      - LANG=C.UTF-8
+      - LC_ALL=C.UTF-8
+      - POSTGRES_DB=odoodb
+      - POSTGRES_PASSWORD=odoo
+      - POSTGRES_USER=odoo
     volumes:
-      - agent_postgres_data:/var/lib/postgresql/data
-      - ./apps/dbagent/scripts/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - odoo-db-data:/var/lib/postgresql/data
+    ports:
+      - '5432:5432' # Map container port 5432 to host port 5432
     networks:
-      - db_network
+      - odoo-network
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U odoo -d odoodb']
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
-  xata-agent:
-    image: xataio/agent:0.2.2
+  # Servicio de Odoo
+  odoo:
+    build: .
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - '8069:8069'
+    volumes:
+      - ./addons:/opt/odoo/addons
+      # - ./odoo:/opt/odoo  # This mount hides the odoo-bin copied in Dockerfile
+      - ./setup:/opt/odoo/setup
+      - odoo-web-data:/opt/odoo/web
+      - ./odoo/odoo.conf:/opt/odoo/.odoorc
+      - odoo-config:/opt/odoo/config
+      - odoo-extra-addons:/opt/odoo/extra-addons
+      - odoo-filestore-data:/opt/odoo/.local/share/Odoo # Persist filestore
     environment:
-      DATABASE_URL: postgresql://${POSTGRES_USER:-dbagent}:${POSTGRES_PASSWORD:-changeme}@postgres:5432/${POSTGRES_DB:-dbagent}
+      - HOST=db
+      - USER=odoo
+      - PASSWORD=odoo
+      - DATABASE=odoodb
+      - TZ=Europe/Madrid
+      - HOME=/opt/odoo
+    networks:
+      - odoo-network
+    restart: unless-stopped
+
+  # Servicio de Xata Agent
+  xata-agent:
+    build:
+      context: /home/miguel/dev/agents/xata-agent
+    environment:
+      DATABASE_URL: postgresql://odoo:odoo@db:5432/odoodb
       NODE_ENV: production
       AUTH_TRUST_HOST: ${AUTH_TRUST_HOST:-localhost}
-    env_file: '.env.production'
+      AUTH_SECRET: ${AUTH_SECRET} # Pass AUTH_SECRET explicitly
+    env_file:
+      - /home/miguel/dev/agents/xata-agent/.env.production
     ports:
       - '8080:8080'
     depends_on:
-      - postgres
+      db:
+        condition: service_healthy
     networks:
-      - db_network
+      - odoo-network
+    volumes:
+      - /home/miguel/dev/agents/xata-agent:/app # Montar el código para reflejar cambios en caliente si lo necesitas
 
 volumes:
-  agent_postgres_data:
+  odoo-db-data:
+  odoo-web-data:
+  odoo-config:
+  odoo-extra-addons:
+  odoo-filestore-data: # Define filestore volume
 
 networks:
-  db_network:
+  odoo-network:
     driver: bridge

@@ -1,15 +1,17 @@
 import { sql } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/node-postgres';
-import pg from 'pg';
+import { Client, ClientBase, Pool, PoolConfig } from 'pg'; // ✅ Importaciones correctas
 import { requireUserSession } from '~/utils/route';
 import { env } from '../env/server';
 import { authenticatedUser } from './schema';
 
-const pool = new pg.Pool({
+const pool = new Pool({
   connectionString: env.DATABASE_URL,
   max: 20
 });
 
+// ✅ Exportación explícita de tipos, si los necesitas
+export type { Client, ClientBase, Pool, PoolConfig };
 /**
  * Interface for database access that provides a consistent way to execute queries
  * with proper user context and role settings.
